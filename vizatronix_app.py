@@ -8,7 +8,7 @@ import io
 import os
 
 # --- CONFIGURAZIONE PAGINA ---
-st.set_page_config(page_title="Vizatronix Engineering PRO", page_icon="🏗️", layout="wide")
+st.set_page_config(page_title="Vizatronix Engineering PRO Pino Mazzitelli", page_icon="🏗️", layout="wide")
 
 # --- CUSTOM CSS ---
 st.markdown("""
