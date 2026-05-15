@@ -94,7 +94,7 @@ menu = st.sidebar.radio("Modulo:", ["🏠 Home", "❄️ Modulo Termico", "🌬�
 
 # --- MODULO HOME ---
 if menu == "🏠 Home":
-    st.title("🏗️ Vizatronix Engineering PRO")
+    st.title("🏗️ Vizatronix Engineering PRO Pino Mazzitelli")
     st.info("Benvenuto. Seleziona un modulo tecnico dal menu a sinistra. Tutti i calcoli generano report PDF ottimizzati per la condivisione da smartphone.")
 
 # --- MODULO TERMICO ---
