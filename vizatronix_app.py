@@ -132,7 +132,9 @@ elif menu == "❄️ Modulo Termico":
     chart = get_pie_chart_termico(volume*35, persone*150)
     with open("t_chart.png", "wb") as f: f.write(chart.getbuffer())
     pdf.image("t_chart.png", x=50, y=140, w=110)
-    pdf_bytes = pdf.output()
+    
+    # CORREZIONE: Cast esplicito a bytes
+    pdf_bytes = bytes(pdf.output())
     os.remove("t_chart.png")
 
     col_btn1, col_btn2 = st.columns(2)
@@ -156,9 +158,13 @@ elif menu == "🌬️ Modulo UTA":
     p_vol = vol_uta * ach
     p_pers = n_pers * 32 * 0.85 # 32 m3/h per pers * contemporaneità
     p_progetto = max(p_vol, p_pers)
+    
+    # Formula Potenza Elettrica: P = (Q * dp) / (rendimento * 1000)
     potenza_motore = ((p_progetto / 3600) * prevalenza) / (0.65 * 1000)
 
     st.metric("Portata Progetto", f"{p_progetto:,.0f} m3/h")
+    st.write("Formula Potenza Motore:")
+    st.latex(r"P = \frac{Q \cdot \Delta p}{3600 \cdot 1000 \cdot \eta}")
 
     # Generazione PDF UTA
     pdf = VizatronixPDF(theme_color=(40, 167, 69)) # Colore Verde
@@ -182,7 +188,9 @@ elif menu == "🌬️ Modulo UTA":
     chart = get_bar_chart_uta(p_vol, p_pers)
     with open("u_chart.png", "wb") as f: f.write(chart.getbuffer())
     pdf.image("u_chart.png", x=50, y=160, w=110)
-    pdf_bytes = pdf.output()
+    
+    # CORREZIONE: Cast esplicito a bytes
+    pdf_bytes = bytes(pdf.output())
     os.remove("u_chart.png")
 
     col_btn1, col_btn2 = st.columns(2)
