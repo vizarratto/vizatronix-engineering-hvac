@@ -9,7 +9,7 @@ import os
 import base64
 
 # --- CONFIGURAZIONE PAGINA ---
-st.set_page_config(page_title="Vizatronix Engineering PRO Pino Mazzitelli", page_icon="🏗️", layout="wide")
+st.set_page_config(page_title="Vizatronix Engineering PRO", page_icon="🏗️", layout="wide")
 
 # --- CUSTOM CSS PER MOBILE ---
 st.markdown("""
