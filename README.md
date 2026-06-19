@@ -1,5 +1,3 @@
-Ecco una proposta per un file README.md professionale, strutturato secondo gli standard dell'ingegneria del software (Enterprise-grade). Puoi inserirlo direttamente nella repository Git del tuo progetto.
-
 Vizatronix Engineering PRO — Suite di Calcolo Termotecnico & Aeraustico
 Vizatronix Engineering PRO è un'applicazione web-based altamente specializzata sviluppata in Python tramite il framework Streamlit. Il software fornisce agli ingegneri professionisti, progettisti termotecnici e installatori uno strumento rapido, preciso e conforme alle normative vigenti per il dimensionamento dei carichi termici (estivi/invernali) e la progettazione aeraustica avanzata delle Unità di Trattamento Aria (UTA).
 
