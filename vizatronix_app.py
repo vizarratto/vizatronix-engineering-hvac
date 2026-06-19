@@ -273,7 +273,7 @@ elif menu == "🌬️ Modulo UTA Avanzato":
     pdf.add_page()
     
     pdf.section_header("Relazione Tecnica Trattamento Aria (UTA)")
-    pdf.technical_row("Progettista", "Ingegnere Pino Mazzitelli")
+    pdf.technical_row("Progettista", "Pino Mazzitelli")
     pdf.technical_row("Cliente", f"{nome_c} {cognome_c}")
     pdf.technical_row("Ubicazione Impianto", indirizzo_c)
     pdf.technical_row("Destinazione d'Uso Locale", destinazione)
