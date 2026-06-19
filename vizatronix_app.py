@@ -15,7 +15,7 @@ st.set_page_config(page_title="Pino Mazzitelli Engineering PRO", page_icon="🏗
 st.markdown("""
     <style>
     .main { background-color: #f4f7f6; }
-    [data-testid="stMetricValue"] { font-size: 1.6rem; }
+    [data-testid="stMetricValue"] { font-size: 1.5rem; }
     .stButton>button { width: 100%; border-radius: 8px; font-weight: bold; height: 3em; }
     iframe { border-radius: 10px; border: 1px solid #ddd; background: white; }
     </style>
@@ -67,10 +67,16 @@ def display_pdf(pdf_bytes):
     st.markdown(pdf_display, unsafe_allow_html=True)
 
 # --- FUNZIONI GRAFICHE ---
-def get_pie_chart_termico(carico_str, carico_pers):
+def get_pie_chart_termico(struttura, vetrate, persone, carichi_int):
     plt.style.use('ggplot')
     fig, ax = plt.subplots(figsize=(5, 3.5))
-    ax.pie([carico_str, carico_pers], labels=['Struttura', 'Persone'], autopct='%1.1f%%', colors=['#1f4e79', '#ffc107'], startangle=90)
+    labels = ['Pareti/Solaio', 'Superfici Vetrate', 'Persone', 'Apparecchiature']
+    valori = [struttura, vetrate, persone, carichi_int]
+    # Filtra valori a zero per evitare grafici corrotti
+    labels = [l for l, v in zip(labels, valori) if v > 0]
+    valori = [v for v in valori if v > 0]
+    
+    ax.pie(valori, labels=labels, autopct='%1.1f%%', colors=['#1f4e79', '#fd7e14', '#ffc107', '#17a2b8'], startangle=90)
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
     buf.seek(0)
@@ -94,48 +100,108 @@ st.sidebar.title("👤 Committente")
 nome_c = st.sidebar.text_input("Nome", "Mario")
 cognome_c = st.sidebar.text_input("Cognome", "Rossi")
 indirizzo_c = st.sidebar.text_input("Indirizzo", "Milano")
-menu = st.sidebar.radio("Modulo:", ["🏠 Home", "❄️ Modulo Termico", "🌬️ Modulo UTA Avanzato"])
+menu = st.sidebar.radio("Modulo:", ["🏠 Home", "❄️ Modulo Termico PRO", "🌬️ Modulo UTA Avanzato"])
 
 # --- MODULO HOME ---
 if menu == "🏠 Home":
     st.title("🏗️ Vizatronix Engineering PRO")
     st.subheader("Ingegnere Pino Mazzitelli")
-    st.info("Benvenuto nel pannello software professionale. Seleziona un modulo tecnico a sinistra per procedere al dimensionamento e alla generazione del report certificato.")
+    st.info("Seleziona un modulo tecnico dal menu a sinistra per avviare il dimensionamento termotecnico ed aeraustico.")
 
-# --- MODULO TERMICO ---
-elif menu == "❄️ Modulo Termico":
-    st.title("❄️ Calcolo Carico Termico")
-    c1, c2 = st.columns(2)
-    with c1:
-        area = st.number_input("Area (m2)", 1.0, 500.0, 40.0)
-        altezza = st.number_input("Altezza (m)", 2.0, 5.0, 2.7)
-    with c2:
-        persone = st.number_input("Persone", 1, 50, 2)
-        esposizione = st.selectbox("Esposizione", ["Nord", "Sud", "Est/Ovest"])
+# --- MODULO TERMICO PRO ---
+elif menu == "❄️ Modulo Termico PRO":
+    st.title("❄️ Calcolo Carichi Termici Estivi ed Invernali")
+    
+    t_term_1, t_term_2 = st.tabs(["🏛️ Geometria e Struttura", "🔥 Carichi Interni e Climatici"])
+    
+    with t_term_1:
+        col_t1, col_t2 = st.columns(2)
+        with col_t1:
+            area = st.number_input("Superficie Calpestabile (m2)", 1.0, 1000.0, 50.0)
+            altezza = st.number_input("Altezza Interpiano (m)", 2.0, 6.0, 2.70)
+            isolamento = st.selectbox("Livello Isolamento Strutture", ["Ottimo (Nuova costruzione / Cappotto)", "Medio (Anni 90/2000)", "Scarso (Edificio storico / Non isolato)"])
+        with col_t2:
+            sup_vetrata = st.number_input("Superficie Vetrata Totale (m2)", 0.0, 200.0, 6.0)
+            esposizione = st.selectbox("Esposizione Prevalente Fronte Vetrato", ["Nord (Nessun raggiamento diretto)", "Sud (Forte irraggiamento)", "Est / Ovest (Raggiamento mattutino/pomeridiano)"])
+            tipo_vetro = st.selectbox("Tipologia di Vetratura", ["Doppio Vetro Basso Emissivo", "Vetro Singolo", "Triplo Vetro Selettivo"])
 
+    with t_term_2:
+        col_t3, col_t4 = st.columns(2)
+        with col_t3:
+            destinazione_t = st.selectbox("Destinazione d'Uso del Locale", ["Residenziale / Uffici standard", "Locali Commerciali / Negozi", "Palestre / Attività Sportiva"])
+            persone = st.number_input("Numero Medio di Occupanti", 0, 500, 4)
+        with col_t4:
+            carico_elettro = st.number_input("Potenza Apparecchiature Elettriche Accese (W)", 0, 50000, 600, step=100)
+            modo_calcolo = st.radio("Seleziona Stagione di Progetto", ["Raffrescamento (Estivo)", "Riscaldamento (Invernale)"])
+
+    # --- LOGICA DI CALCOLO STRUTTURALE ---
     volume = area * altezza
-    totale_w = (volume * 35) + (persone * 150)
-    assorbimento_w = totale_w / 3.2
-    ampere = assorbimento_w / 230
+    
+    # Assegnazione coefficienti di trasmittanza/dispersione (W/m2K o W/m3) equivalenti empirici professionali
+    coeff_isol = 18 if "Ottimo" in isolamento else (28 if "Medio" in isolamento else 42)
+    carico_struttura = volume * coeff_isol
 
-    st.metric("Potenza Richiesta", f"{totale_w:,.0f} Watt")
+    # Calcolo carico vetrate (Funzione dell'esposizione e del tipo di vetro)
+    coeff_vetro = 1.4 if "Triplo" in tipo_vetro else (2.8 if "Doppio" in tipo_vetro else 5.7)
+    coeff_esposizione = 1.0 if "Nord" in esposizione else (1.5 if "Sud" in esposizione else 1.8) # Ovest ha il picco estivo massimo
+    
+    if modo_calcolo == "Raffrescamento (Estivo)":
+        carico_vetrate = sup_vetrata * coeff_vetro * 30 * coeff_esposizione # DeltaT estivo + irraggiamento
+        # Apporto metabolico persone (Sensibile + Latente)
+        coeff_pers_watt = 120 if "Residenziale" in destinazione_t else (150 if "Commerciali" in destinazione_t else 250)
+        carico_persone = persone * coeff_pers_watt
+        carico_impianti = carico_elettro
+    else:
+        # Inverno: Minori carichi interni considerati a favore di sicurezza per il picco termico
+        carico_vetrate = sup_vetrata * coeff_vetro * 25 # Solo conduzione pura deltaT inverno
+        carico_persone = 0 
+        carico_impianti = 0
 
+    # Totale Potenze
+    potenza_w = carico_struttura + carico_vetrate + carico_persone + carico_impianti
+    potenza_kw = potenza_w / 1000
+    potenza_btu = potenza_kw * 3412.142
+
+    # --- VISUALIZZAZIONE RISULTATI ---
+    st.markdown("---")
+    res_t1, res_t2 = st.columns(2)
+    res_t1.metric(f"Potenza Richiesta ({modo_calcolo})", f"{potenza_kw:.2f} kW")
+    res_t2.metric("Potenza Equivalente in BTU/h", f"{potenza_btu:,.0f} BTU/h")
+
+    # --- GENERAZIONE PDF TERMICO ---
     pdf = VizatronixPDF(theme_color=(31, 78, 121))
     pdf.add_page()
     
-    pdf.section_header("Dati di Progetto Termico")
+    pdf.section_header("Dati di Sintesi Fabbricato")
+    pdf.technical_row("Progettista", "Ingegnere Pino Mazzitelli")
     pdf.technical_row("Cliente", f"{nome_c} {cognome_c}")
-    pdf.technical_row("Indirizzo", indirizzo_c)
-    pdf.technical_row("Volume Ambiente", f"{volume:.2f}", "m3")
+    pdf.technical_row("Indirizzo Immobile", indirizzo_c)
+    pdf.technical_row("Destinazione Locale", destinazione_t)
+    pdf.technical_row("Volume Totale Ambiente", f"{volume:.2f}", "m3")
+    pdf.technical_row("Grado Isolamento Termico", isolamento)
     
-    pdf.section_header("Risultati e Consumi")
-    pdf.technical_row("Potenza Totale", f"{totale_w:,.0f}", "W")
-    pdf.technical_row("Assorbimento Nominale", f"{assorbimento_w:.0f}", "W")
-    pdf.technical_row("Corrente Stimata", f"{ampere:.2f}", "A")
+    pdf.section_header("Dettagli Superfici Vetrate ed Esposizione")
+    pdf.technical_row("Superficie Vetratura Esposta", f"{sup_vetrata}", "m2")
+    pdf.technical_row("Orientamento Parete Vetrata", esposizione)
+    pdf.technical_row("Tecnologia Vetro Installata", tipo_vetro)
+
+    pdf.section_header("Bilancio Energetico dei Carichi")
+    pdf.technical_row("Carico da Struttura Disperdente", f"{carico_struttura/1000:.3f}", "kW")
+    pdf.technical_row("Carico da Irraggiamento / Trasmittanza Vetri", f"{carico_vetrate/1000:.3f}", "kW")
+    pdf.technical_row("Carico Endogeno (Occupanti)", f"{carico_persone/1000:.3f}", "kW")
+    pdf.technical_row("Carico da Apparecchiature Elettriche", f"{carico_impianti/1000:.3f}", "kW")
     
-    chart = get_pie_chart_termico(volume*35, persone*150)
+    pdf.section_header("Dimensionamento Finale Impianto")
+    pdf.technical_row("POTENZA TOTALE RICHIESTA (kW)", f"{potenza_kw:.2f}", "kW")
+    pdf.technical_row("POTENZA TOTALE RICHIESTA (BTU/h)", f"{potenza_btu:,.0f}", "BTU/h")
+    
+    # Grafico a torta dei carichi termici
+    chart = get_pie_chart_termico(carico_struttura, carico_vetrate, carico_persone, carico_impianti)
     with open("t_chart.png", "wb") as f: f.write(chart.getbuffer())
-    current_y = pdf.get_y() + 5
+    current_y = pdf.get_y() + 8
+    if current_y > 210:
+        pdf.add_page()
+        current_y = 45
     pdf.image("t_chart.png", x=50, y=current_y, w=110)
     
     pdf_bytes = bytes(pdf.output())
@@ -143,9 +209,9 @@ elif menu == "❄️ Modulo Termico":
     except: pass
 
     col_btn1, col_btn2 = st.columns(2)
-    with col_btn1: st.download_button("⬇️ Scarica PDF", pdf_bytes, f"Termico_{cognome_c}.pdf", "application/pdf")
+    with col_btn1: st.download_button("⬇️ Scarica Relazione Termica PDF", pdf_bytes, f"Termico_{cognome_c}.pdf", "application/pdf")
     with col_btn2: 
-        if st.button("👁️ Visualizza PDF"): display_pdf(pdf_bytes)
+        if st.button("👁️ Visualizza Report"): display_pdf(pdf_bytes)
 
 # --- MODULO UTA AVANZATO ---
 elif menu == "🌬️ Modulo UTA Avanzato":
@@ -175,28 +241,18 @@ elif menu == "🌬️ Modulo UTA Avanzato":
             usa_recuperatore = st.checkbox("Includi Recuperatore di Calore a Flussi Incrociati", value=True)
             efficienza_rec = st.slider("Efficienza del Recuperatore (%)", 50, 95, 75) if usa_recuperatore else 0
 
-    # --- LOGICA DEI CALCOLI TECNICI ---
-    # 1. Calcolo Portate (m3/h)
     p_vol = vol_uta * ach
-    
-    # Moltiplicatore IAQ (IDA)
     coeff_ida = 30 if "IDA 3" in qualita_aria else (45 if "IDA 2" in qualita_aria else 72)
     p_pers = n_pers * coeff_ida
     
-    # Filtro Destinazione d'uso normativa
     if "Uffici" in destinazione: p_norma = n_pers * 40
     elif "Ristoranti" in destinazione: p_norma = n_pers * 50
     elif "Palestre" in destinazione: p_norma = n_pers * 60
-    else: p_norma = n_pers * 35 # Scuole/Sale
+    else: p_norma = n_pers * 35
 
     p_progetto = max(p_vol, p_pers, p_norma)
-    
-    # 2. Calcolo Potenza Ventilatore Meccanica (kW)
     potenza_motore = ((p_progetto / 3600) * prevalenza) / (0.65 * 1000)
-
-    # 3. Calcolo Potenza Termica Batteria (kW)
     delta_t = abs(t_est - t_int)
-    # Formula: Q * densità * calore specifico * deltaT / 3600 per portarlo in kW
     potenza_termica_nominale = (p_progetto * 1.2 * 1.005 * delta_t) / 3600
     
     if usa_recuperatore:
@@ -206,7 +262,6 @@ elif menu == "🌬️ Modulo UTA Avanzato":
         potenza_risparmiata = 0
         potenza_batteria_reale = potenza_termica_nominale
 
-    # --- OUTPUT INTERFACCIA ---
     st.markdown("---")
     res1, res2, res3 = st.columns(3)
     res1.metric("Portata Aria di Progetto", f"{p_progetto:,.0f} m3/h")
@@ -214,8 +269,7 @@ elif menu == "🌬️ Modulo UTA Avanzato":
     res3.metric("Carico Termico Batteria UTA", f"{potenza_batteria_reale:.2f} kW", 
               delta=f"-{potenza_risparmiata:.2f} kW (Eco)" if usa_recuperatore else None)
 
-    # --- GENERAZIONE GENERALE PDF ---
-    pdf = VizatronixPDF(theme_color=(40, 167, 69)) # Tema Verde
+    pdf = VizatronixPDF(theme_color=(40, 167, 69))
     pdf.add_page()
     
     pdf.section_header("Relazione Tecnica Trattamento Aria (UTA)")
@@ -245,12 +299,9 @@ elif menu == "🌬️ Modulo UTA Avanzato":
         pdf.technical_row("Potenza Termica Recuperata (Risparmio)", f"{potenza_risparmiata:.2f}", "kW")
     pdf.technical_row("Potenza Netta Richiesta alla Batteria", f"{potenza_batteria_reale:.2f}", "kW")
     
-    # Generazione grafico a barre comparativo portate
     chart = get_bar_chart_uta(p_vol, p_pers, p_norma)
     with open("u_chart.png", "wb") as f: f.write(chart.getbuffer())
     current_y = pdf.get_y() + 5
-    
-    # Protezione cambio pagina automatica se l'immagine è troppo in basso
     if current_y > 200:
         pdf.add_page()
         current_y = 45
@@ -261,7 +312,6 @@ elif menu == "🌬️ Modulo UTA Avanzato":
     except: pass
 
     col_btn1, col_btn2 = st.columns(2)
-    with col_btn1: 
-        st.download_button("⬇️ Scarica Relazione UTA PDF", pdf_bytes, f"UTA_{cognome_c}.pdf", "application/pdf")
+    with col_btn1: st.download_button("⬇️ Scarica Relazione UTA PDF", pdf_bytes, f"UTA_{cognome_c}.pdf", "application/pdf")
     with col_btn2: 
         if st.button("👁️ Visualizza Relazione PDF"): display_pdf(pdf_bytes)
