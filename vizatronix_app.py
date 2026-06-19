@@ -105,7 +105,7 @@ menu = st.sidebar.radio("Modulo:", ["🏠 Home", "❄️ Modulo Termico PRO", "�
 # --- MODULO HOME ---
 if menu == "🏠 Home":
     st.title("🏗️ Vizatronix Engineering PRO")
-    st.subheader("Ingegnere Pino Mazzitelli")
+    st.subheader("Pino Mazzitelli")
     st.info("Seleziona un modulo tecnico dal menu a sinistra per avviare il dimensionamento termotecnico ed aeraustico.")
 
 # --- MODULO TERMICO PRO ---
@@ -173,7 +173,7 @@ elif menu == "❄️ Modulo Termico PRO":
     pdf.add_page()
     
     pdf.section_header("Dati di Sintesi Fabbricato")
-    pdf.technical_row("Progettista", "Ingegnere Pino Mazzitelli")
+    pdf.technical_row("Progettista", "Pino Mazzitelli")
     pdf.technical_row("Cliente", f"{nome_c} {cognome_c}")
     pdf.technical_row("Indirizzo Immobile", indirizzo_c)
     pdf.technical_row("Destinazione Locale", destinazione_t)
