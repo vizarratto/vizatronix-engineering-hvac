@@ -67,5 +67,5 @@ Specifiche Tecniche di Output: Tabelle chiare recanti i dati di calcolo ingegner
 Data Viz: Grafici vettoriali integrati direttamente nel layout (Pie Chart per la ripartizione percentuale dei carichi o Bar Chart per il confronto normativo delle portate).
 
 🔒 Licenza e Proprietà
-Proprietà Riservata - Sviluppato da Ingegnere Pino Mazzitelli.
+Proprietà Riservata - Sviluppato da P.Ind. Pino Mazzitelli.
 Tutti i diritti sul codice sorgente, logiche di calcolo e layout grafici sono riservati a VIZATRONIX ENGINEERING SOLUTIONS. È vietata la riproduzione e la ridistribuzione non autorizzata.
